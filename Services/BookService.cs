@@ -23,6 +23,24 @@ public class BookService {
   ];
 
   public List<Book> FindAll() {
+    foreach (var book in _books) {
+      Console.WriteLine(book.Title);
+    }
     return _books;
+  }
+
+  public void Create(Book book) {
+    _books.Add(book);
+  }
+
+  public bool Delete(int id) {
+    var book = _books.FirstOrDefault(b => b.Id == id);
+
+    if (book is null) {
+      return false;
+    }
+
+    _books.Remove(book);
+    return true;
   }
 }

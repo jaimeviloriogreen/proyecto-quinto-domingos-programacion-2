@@ -1,14 +1,15 @@
-﻿using QuintoProyecto.Services;
+﻿using QuintoProyecto.Models;
+using QuintoProyecto.Services;
 using Spectre.Console;
 
-// bool running = true;
+BookService bookService = new();
 
 string[] options = [
   "1. Agregar un libro",
-  "2. Eliminar un libro",
-  "3. Mostrar todos los libros",
-  "4. Salir"
-];
+      "2. Eliminar un libro",
+      "3. Mostrar todos los libros",
+      "4. Salir"
+  ];
 
 while (true) {
   var selections = new SelectionPrompt<string>()
@@ -19,14 +20,49 @@ while (true) {
 
   var option = AnsiConsole.Prompt(selections);
 
-  var bookService = new BookService();
+  List<Book> books = bookService.FindAll();
 
   switch (option) {
     case "1. Agregar un libro":
-      Console.WriteLine("Agregando un libro");
+      AnsiConsole.Clear();
+
+      var title = AnsiConsole.Ask<string>("[DarkGoldenrod]Indica el título del libro:[/]");
+      var description = AnsiConsole.Ask<string>("[DarkGoldenrod]Indica la descripción del libro:[/]");
+
+      var Ids = books.Max(book => book.Id);
+
+      var newBook = new Book {
+        Id = Ids + 1,
+        Title = title,
+        Description = description
+      };
+
+      bookService.Create(newBook);
+      AnsiConsole.Clear();
+      AnsiConsole.MarkupLine("\n[Green]Libro agregado.[/]\n");
+
       break;
     case "2. Eliminar un libro":
-      Console.WriteLine("Eliminando un libro");
+      AnsiConsole.Clear();
+      var id = AnsiConsole.Ask<int>("Indica el id del libro a eliminar:");
+      AnsiConsole.WriteLine("");
+
+      var confirm = AnsiConsole.Confirm("¿Estás seguro que deseas eliminarlo?:");
+
+      if (confirm) {
+        var deleted = bookService.Delete(id);
+
+        if (deleted) {
+          AnsiConsole.MarkupLine("\n[green]!Libro eliminado![/]\n");
+          break;
+        }
+
+        AnsiConsole.MarkupLine("\n[red]¡Libro no encontrado![/]\n");
+        break;
+      }
+
+      AnsiConsole.MarkupLine("\n[red]Operación cancelada[/]\n");
+
       break;
     case "3. Mostrar todos los libros":
       AnsiConsole.Clear();
@@ -40,8 +76,6 @@ while (true) {
       table.AddColumn("Título");
       table.AddColumn("Descripción");
 
-      var books = bookService.FindAll();
-
       foreach (var book in books) {
         table.AddRow(book.Id.ToString(), book.Title, book.Description);
       }
@@ -51,8 +85,8 @@ while (true) {
     case "4. Salir":
       AnsiConsole.Clear();
       AnsiConsole.MarkupLine("[green]Fin de la aplicación.[/]");
-      // running = false;
-      // break;
+
       return;
+
   }
 }
